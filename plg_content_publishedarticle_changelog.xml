@@ -3,6 +3,24 @@
 		<element>publishedarticle</element>
 		<type>plugin</type>
 		<group>content</group>
+		<version>2.0.3</version>
+        <note>
+            <item>Update : 17/03/2023</item>
+        </note>
+         <fix>
+            <item>Send always message if no category selected</item>
+        </fix>
+        <change>
+            <item>User group selection using fancy-select</item>
+        </change>
+		<addition>
+			<item>Check profile automsg settings</item>
+		</addition>
+	</changelog>
+	<changelog>
+		<element>publishedarticle</element>
+		<type>plugin</type>
+		<group>content</group>
 		<version>2.0.2</version>
         <note>
             <item>Update : 17/03/2023</item>

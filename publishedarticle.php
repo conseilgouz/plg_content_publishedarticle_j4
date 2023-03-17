@@ -76,7 +76,15 @@ class PlgContentPublishedArticle extends CMSPlugin
 			->where($db->quoteName('block') . ' = 0 AND g.group_id IN ('.implode(',',$usergroups).')');
 		$db->setQuery($query);
 		$users = (array) $db->loadColumn();
-
+		// check profile automsg
+		$query = $db->getQuery(true)
+			->select($db->quoteName('p.user_id'))
+			->from($db->quoteName('#__user_profiles').' as p ')
+			->where($db->quoteName('profile_key') . ' like ' .$db->quote('profile_automsg.%').' AND '.$db->quoteName('profile_value'). ' like '.$db->quote('%Non%'));
+		$db->setQuery($query);
+		$deny = (array) $db->loadColumn();
+		$users = array_diff($users,$deny);
+				
 		if (empty($users))
 		{
 			return true;
@@ -99,7 +107,7 @@ class PlgContentPublishedArticle extends CMSPlugin
 			$model->setState('list.direction', 'DESC');
 			
 			$article = $model->getItem($articleid);
-			if (!in_array($article->catid,$categories)) continue; // wrong category
+			if (!empty($categories) && !in_array($article->catid,$categories)) continue; // wrong category
 			$creatorId = $article->created_by;
 			if (!in_array($creatorId,$users)) { // creator not in users array : add it
 			    $users[] = $creatorId;
