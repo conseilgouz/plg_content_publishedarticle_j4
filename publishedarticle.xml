@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<extension version="1.0" type="plugin" group="content" method="upgrade">
+<extension version="4.0" type="plugin" group="content" method="upgrade">
 	<name>PLG_CONTENT_PUBLISHEDARTICLE</name>
 	<author>conseilgouz</author>
-	<creationDate>2023/03/16</creationDate>
+	<creationDate>2023/03/17</creationDate>
 	<copyright>Copyright (C) 2023 ConseilGouz. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<authorEmail>pascal.leconte@conseilgouz.com</authorEmail>
 	<authorUrl>www.conseilgouz.com</authorUrl>
-	<version>2.0.0</version>
+	<version>2.0.1</version>
 	<description>PLG_CONTENT_PUBLISHEDARTICLE_XML_DESCRIPTION</description>
 	<files>
 		<filename plugin="publishedarticle">publishedarticle.php</filename>
