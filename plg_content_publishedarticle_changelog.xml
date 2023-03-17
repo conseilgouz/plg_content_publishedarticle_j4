@@ -3,6 +3,18 @@
 		<element>publishedarticle</element>
 		<type>plugin</type>
 		<group>content</group>
+		<version>2.0.2</version>
+        <note>
+            <item>Update : 17/03/2023</item>
+        </note>
+         <fix>
+            <item>Missing Subject/Body parameters in xml</item>
+        </fix>
+	</changelog>
+	<changelog>
+		<element>publishedarticle</element>
+		<type>plugin</type>
+		<group>content</group>
 		<version>2.0.1</version>
         <note>
             <item>Update : 17/03/2023</item>
