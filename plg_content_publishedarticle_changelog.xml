@@ -9,7 +9,7 @@
         </note>
 		<fix>
 			<item>force load language</item>
-		</addition>
+		</fix>
 	</changelog>
 	<changelog>
 		<element>publishedarticle</element>
