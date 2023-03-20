@@ -21,6 +21,11 @@ class PlgContentPublishedArticle extends CMSPlugin
 {
 	protected $itemtags, $info_cat, $tag_img,$cat_img, $url, $needCatImg,$needIntroImg;
 	
+    public function __construct(& $subject, $config)
+    {
+        parent::__construct($subject, $config);
+        $this->loadLanguage();
+    }
 	public function onContentAfterSave($context, $article, $isNew)
 	{
 
@@ -144,7 +149,7 @@ class PlgContentPublishedArticle extends CMSPlugin
 				if (strpos($body,'{unsubscribe}')) {
 					$unsubscribe = "";
 					if ($tokens[$user_id]) {
-						$unsubscribe ="<a href='".URI::root()."index.php?option=com_automsg&view=automsg&layout=edit&token=".$tokens[$user_id]."' target='_blank'>".Text::_('PLG_CONTENT_PUBLISHEDARTICLE_UNSUBSCRIBE')."/a>"; 
+						$unsubscribe ="<a href='".URI::root()."index.php?option=com_automsg&view=automsg&layout=edit&token=".$tokens[$user_id]."' target='_blank'>".Text::_('PLG_CONTENT_PUBLISHEDARTICLE_UNSUBSCRIBE')."</a>"; 
 					}
 					$body = str_replace('{unsubscribe}',$unsubscribe ,$body);
 				}

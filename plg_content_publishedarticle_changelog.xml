@@ -3,6 +3,18 @@
 		<element>publishedarticle</element>
 		<type>plugin</type>
 		<group>content</group>
+		<version>2.0.5</version>
+        <note>
+            <item>Update : 20/03/2023</item>
+        </note>
+		<fix>
+			<item>force load language</item>
+		</addition>
+	</changelog>
+	<changelog>
+		<element>publishedarticle</element>
+		<type>plugin</type>
+		<group>content</group>
 		<version>2.0.4</version>
         <note>
             <item>Update : 20/03/2023</item>
