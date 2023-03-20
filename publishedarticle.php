@@ -14,7 +14,7 @@ use Joomla\CMS\Uri\Uri;
 use Joomla\CMS\String\PunycodeHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-
+use Joomla\Database\ParameterType;
 use Joomla\CMS\Plugin\CMSPlugin;
 
 class PlgContentPublishedArticle extends CMSPlugin
@@ -89,6 +89,8 @@ class PlgContentPublishedArticle extends CMSPlugin
 		{
 			return true;
 		}
+		$tokens = $this->getAutomsgToken($users);
+		
 		$config = Factory::getConfig();
 		
 		foreach ($pks as $articleid) {
@@ -109,11 +111,11 @@ class PlgContentPublishedArticle extends CMSPlugin
 			$article = $model->getItem($articleid);
 			if (!empty($categories) && !in_array($article->catid,$categories)) continue; // wrong category
 			$creatorId = $article->created_by;
-			if (!in_array($creatorId,$users)) { // creator not in users array : add it
+			if (!in_array($creatorId,$users) && (!in_array($creatorId,$deny))) { // creator not in users array : add it
 			    $users[] = $creatorId;
 			}
 			$creator = Factory::getUser($creatorId);
-			$this->url = "<a href='".URI::root()."index.php?option=com_content&view=article&id=".$articleid."' target='_blank'> en cliquant sur ce lien</a>"; 
+			$this->url = "<a href='".URI::root()."index.php?option=com_content&view=article&id=".$articleid."' target='_blank'>".Text::_("PLG_CONTENT_PUBLISHEDARTICLE_CLICK")."</a>"; 
 			$this->info_cat = $this->getCategoryName($article->catid);
 			$cat_params = json_decode($this->info_cat[0]->params);
 			$this->cat_img = "";
@@ -134,10 +136,18 @@ class PlgContentPublishedArticle extends CMSPlugin
             $this->needCatImg = false;
             $this->needIntroImg = false;
 			$subject = $this->createSubject($creator,$article);
-			$body = $this->createBody($creator,$article);
+			$bodyStd = $this->createBody($creator,$article);
 			foreach ($users as $user_id) {
 				// Load language for messaging
 				$receiver = Factory::getUser($user_id);
+				$body = $bodyStd;
+				if (strpos($body,'{unsubscribe}')) {
+					$unsubscribe = "";
+					if ($tokens[$user_id]) {
+						$unsubscribe ="<a href='".URI::root()."index.php?option=com_automsg&view=automsg&layout=edit&token=".$tokens[$user_id]."' target='_blank'>".Text::_('PLG_CONTENT_PUBLISHEDARTICLE_UNSUBSCRIBE')."/a>"; 
+					}
+					$body = str_replace('{unsubscribe}',$unsubscribe ,$body);
+				}
 				$go = false;
 				$data = $receiver->getProperties();
 				$data['fromname'] = $config->get('fromname');
@@ -148,8 +158,8 @@ class PlgContentPublishedArticle extends CMSPlugin
 				$lang = Factory::getLanguage();
 				$lang->load('plg_content_publishedarticle');
 				if (($user_id == $creatorId) && ($msgcreator == 1)) { // mail specifique au createur de l'article
-					$emailSubject = $this->creatorSubject($creator,$article,"Article publié");
-					$emailBody = $this->creatorBody($creator,$article,"Votre article <b>{title}</b> est publié.<br>Vous pouvez le voir {url}");
+					$emailSubject = $this->creatorSubject($creator,$article,Text::_('PLG_CONTENT_PUBLISHEDARTICLE_PUBLISHED_SUBJECT'));
+					$emailBody = $this->creatorBody($creator,$article,Text::_('PLG_CONTENT_PUBLISHEDARTICLE_PUBLISHED_MSG'));
 				} else 
 				{ // mail pour tous les autres
 					$emailSubject = $subject;
@@ -180,7 +190,7 @@ class PlgContentPublishedArticle extends CMSPlugin
 	}
 	private function createSubject($creator,$article) {
 		$libdateformat = "d/M/Y h:m";
-		$subject = $this->params->get('subject', "Nouvel article: {title}");
+		$subject = $this->params->get('subject',"");
 		if (strpos($subject,'{catimg}')) $this->needCatImg = true;
 		if (strpos($subject,'{introimg}')) $this->needIntroImg = true;
 		$arr_css= array("{creator}"=>$creator->name,"{id}"=>$article->id,"{title}"=>$article->title, "{cat}"=>$this->info_cat[0]->title,"{date}"=>HTMLHelper::_('date', $article->created, $libdateformat), "{intro}" => $article->introtext, "{catimg}" => $this->cat_img, "{url}" => $this->url, "{introimg}"=>$article->introimg, "{subtitle}" => $article->subtitle, "{tags}" => $itemtags,"{featured}" => $article->featured); 
@@ -202,7 +212,7 @@ class PlgContentPublishedArticle extends CMSPlugin
 	}
 	private function createBody($creator,$article) {
 		$libdateformat = "d/M/Y h:m";
-		$body = $this->params->get('body', "Publication d'un article par : {creator}, titre : {title}.<br/>Il est visible {url}");
+		$body = $this->params->get('body', "");
 		if (strpos($body,'{catimg}')) $this->needCatImg = true;
 		if (strpos($body,'{introimg}')) $this->needIntroImg = true;
 		$arr_css= array("{creator}"=>$creator->name,"{id}"=>$article->id,"{title}"=>$article->title, "{cat}"=>$this->info_cat[0]->title,"{date}"=>HTMLHelper::_('date', $article->created, $libdateformat), "{intro}" => $article->introtext, "{catimg}" => $this->cat_img, "{url}" => $this->url, "{introimg}"=>$article->introimg, "{subtitle}" => $article->subtitle, "{tags}" => $itemtags,"{featured}" => $article->featured); 
@@ -246,4 +256,63 @@ class PlgContentPublishedArticle extends CMSPlugin
 		$db->setQuery($query);
 		return $db->loadObjectList();
 	}
+	private function getAutomsgToken($users) {
+		$tokens = array();
+		$db = Factory::getDbo();
+		foreach ($users as $user) {
+			$token = $this->checkautomsgtoken($user);
+			if ($token) {// token found
+				$tokens[$user] = $token;
+			}
+		}
+		return $tokens;
+	}
+		/* check if automsg token exists.
+	*  if it does not, create it
+	*/
+    protected function checkautomsgtoken($userId) {
+        $db    = Factory::getDbo();
+        $query = $db->getQuery(true)
+                 ->select(
+                        [
+                            $db->quoteName('profile_value'),
+                        ]
+                    )
+                ->from($db->quoteName('#__user_profiles'))
+                ->where($db->quoteName('user_id') . ' = :userid')
+                ->where($db->quoteName('profile_key') . ' LIKE '.$db->quote('profile_automsg.token'))
+                ->bind(':userid', $userId, ParameterType::INTEGER);
+
+        $db->setQuery($query);
+        $result = $db->loadResult();
+		if ($result) return $result; // automsg token already exists => exit
+		// create a token
+        $query = $db->getQuery(true)
+                ->insert($db->quoteName('#__user_profiles'));
+		$token = mb_strtoupper(strval(bin2hex(openssl_random_pseudo_bytes(16))));
+		$order = 2;
+		$query->values(
+                implode(
+                        ',',
+                        $query->bindArray(
+                            [
+                                $userId,
+                                'profile_automsg.token',
+                                $token,
+                                $order++,
+                            ],
+                            [
+                                ParameterType::INTEGER,
+                                ParameterType::STRING,
+                                ParameterType::STRING,
+                                ParameterType::INTEGER,
+                            ]
+                        )
+                    )
+        );
+        $db->setQuery($query);
+        $db->execute();
+		return $token;
+	}
+
 }
