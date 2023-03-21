@@ -2,12 +2,12 @@
 <extension version="1.0" type="plugin" group="content" method="upgrade">
 	<name>PLG_CONTENT_PUBLISHEDARTICLE</name>
 	<author>conseilgouz</author>
-	<creationDate>2023/03/20</creationDate>
+	<creationDate>2023/03/21</creationDate>
 	<copyright>Copyright (C) 2023 ConseilGouz. All rights reserved.</copyright>
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<authorEmail>pascal.leconte@conseilgouz.com</authorEmail>
 	<authorUrl>www.conseilgouz.com</authorUrl>
-	<version>2.0.5</version>
+	<version>2.1.0</version>
 	<description>PLG_CONTENT_PUBLISHEDARTICLE_XML_DESCRIPTION</description>
 	<files>
 		<filename plugin="publishedarticle">publishedarticle.php</filename>
@@ -46,21 +46,32 @@
 					<option value="1">Message spécifique</option>
 				</field>
 				<field name="msgauto"
-					type="list"
+					type="radio" class="btn-group btn-group-yesno"
 					default="1"
 					label="PLG_CONTENT_PUBLISHEDARTICLE_AUTO"
-					description="PLG_CONTENT_PUBLISHEDARTICLE_AUTO_DESC"
+				>
+					<option value="0">Non</option>
+					<option value="1">Oui</option>
+				</field>
+				<field name="async"
+					type="radio" class="btn-group btn-group-yesno"
+					default="0"
+					label="PLG_CONTENT_PUBLISHEDARTICLE_ASYNC"
+					description="PLG_CONTENT_PUBLISHEDARTICLE_ASYNC_DESC"
 				>
 					<option value="0">Non</option>
 					<option value="1">Oui</option>
 				</field>
 			    <field type="note" name="note1" label="PLG_CONTENT_PUBLISHEDARTICLE_NOTE" heading="p" />
-				
-				<field name="subject" type="textarea" label="Sujet" description="Entrez le sujet du mail" cols="400" rows="4" filter="raw" 
+			    <field showon="async:1" type="note" name="noteasync" label="PLG_CONTENT_PUBLISHEDARTICLE_ASYNC_NOTE" heading="p" />
+				<field name="subject" type="textarea" label="PLG_CONTENT_PUBLISHEDARTICLE_SUBJECT" cols="400" rows="4" filter="raw" 
 					default="Nouvel article: {title}"
 					/>			
-				<field name="body" type="textarea" label="Contenu" description="Entrez le contenu du mail" cols="400" rows="4" filter="raw" 
+				<field name="body" type="textarea" label="PLG_CONTENT_PUBLISHEDARTICLE_BODY" cols="400" rows="4" filter="raw" 
 					default="Publication d'un article par : {creator}, titre : {title}.&lt;br&gt;Il est visible {url}"
+					/>			
+				<field showon="async:1" name="asyncline" type="textarea" label="PLG_CONTENT_PUBLISHEDARTICLE_ASYNC_LINE" cols="400" rows="4" filter="raw" 
+					default="{cat}, {creator}, {title}, {url}"
 					/>			
 				
 			</fieldset>

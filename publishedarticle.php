@@ -71,7 +71,6 @@ class PlgContentPublishedArticle extends CMSPlugin
 		// parametres du plugin
 		$categories = $this->params->get('categories', array());
 		$usergroups = $this->params->get('usergroups', array());
-		$msgcreator = $this->params->get('msgcreator', 0);
 		
 		$db = Factory::getDbo();
 		$query = $db->getQuery(true)
@@ -96,8 +95,6 @@ class PlgContentPublishedArticle extends CMSPlugin
 		}
 		$tokens = $this->getAutomsgToken($users);
 		
-		$config = Factory::getConfig();
-		
 		foreach ($pks as $articleid) {
 			$model     = new ArticleModel(array('ignore_request' => true));
 			$model->setState('params', $this->params);
@@ -115,6 +112,18 @@ class PlgContentPublishedArticle extends CMSPlugin
 			
 			$article = $model->getItem($articleid);
 			if (!empty($categories) && !in_array($article->catid,$categories)) continue; // wrong category
+			if ($this->params->get('async',0)) {
+			    $this->async($article);
+			} else {
+                $this->sendEmails($article,$users,$tokens);
+			}
+		}
+		return true;
+	}
+	private function sendEmails($article,$users,$tokens) {
+			$config = Factory::getConfig();
+			$msgcreator = $this->params->get('msgcreator', 0);
+
 			$creatorId = $article->created_by;
 			if (!in_array($creatorId,$users) && (!in_array($creatorId,$deny))) { // creator not in users array : add it
 			    $users[] = $creatorId;
@@ -190,8 +199,39 @@ class PlgContentPublishedArticle extends CMSPlugin
 				}
 				$send = $mailer->Send();
 			}
-		}
-		return true;
+	}
+	/*
+	 * Asynchronous process : store article id in automsg table
+	 */
+	private function async($article) {
+	    $db    = Factory::getDbo();
+	    $date = Factory::getDate();
+	    
+	    $query = $db->getQuery(true)
+	    ->insert($db->quoteName('#__automsg'));
+	    $query->values(
+	        implode(
+	            ',',
+	            $query->bindArray(
+	                [
+	                    0, // key
+	                    0, // state
+	                    $article->id,
+	                    $date->toSql(),
+	                    NULL
+	                ],
+	                [
+	                    ParameterType::INTEGER,
+	                    ParameterType::INTEGER,
+	                    ParameterType::INTEGER,
+	                    ParameterType::STRING,
+	                    ParameterType::NULL
+	                ]
+	                )
+	            )
+	        );
+	    $db->setQuery($query);
+	    $db->execute();
 	}
 	private function createSubject($creator,$article) {
 		$libdateformat = "d/M/Y h:m";
