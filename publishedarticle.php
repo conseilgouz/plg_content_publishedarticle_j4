@@ -19,7 +19,7 @@ use Joomla\CMS\Plugin\CMSPlugin;
 
 class PlgContentPublishedArticle extends CMSPlugin
 {
-	protected $itemtags, $info_cat, $tag_img,$cat_img, $url, $needCatImg,$needIntroImg;
+	protected $itemtags, $info_cat, $tag_img,$cat_img, $url, $needCatImg,$needIntroImg,$deny;
 	
     public function __construct(& $subject, $config)
     {
@@ -86,8 +86,8 @@ class PlgContentPublishedArticle extends CMSPlugin
 			->from($db->quoteName('#__user_profiles').' as p ')
 			->where($db->quoteName('profile_key') . ' like ' .$db->quote('profile_automsg.%').' AND '.$db->quoteName('profile_value'). ' like '.$db->quote('%Non%'));
 		$db->setQuery($query);
-		$deny = (array) $db->loadColumn();
-		$users = array_diff($users,$deny);
+		$this->deny = (array) $db->loadColumn();
+		$users = array_diff($users,$this->deny);
 				
 		if (empty($users))
 		{
@@ -125,7 +125,7 @@ class PlgContentPublishedArticle extends CMSPlugin
 			$msgcreator = $this->params->get('msgcreator', 0);
 
 			$creatorId = $article->created_by;
-			if (!in_array($creatorId,$users) && (!in_array($creatorId,$deny))) { // creator not in users array : add it
+			if (!in_array($creatorId,$users) && (!in_array($creatorId,$this->deny))) { // creator not in users array : add it
 			    $users[] = $creatorId;
 			}
 			$creator = Factory::getUser($creatorId);

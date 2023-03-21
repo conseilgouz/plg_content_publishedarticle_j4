@@ -3,6 +3,18 @@
 		<element>publishedarticle</element>
 		<type>plugin</type>
 		<group>content</group>
+		<version>2.1.1</version>
+        <note>
+            <item>Update : 21/03/2023</item>
+        </note>
+		<fix>
+			<item>Deny not an array error</item>
+		</fix>
+	</changelog>
+	<changelog>
+		<element>publishedarticle</element>
+		<type>plugin</type>
+		<group>content</group>
 		<version>2.1.0</version>
         <note>
             <item>Update : 21/03/2023</item>
